@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HItung - Aplikasi RAB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print { .no-print { display: none; } }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100 p-4 font-sans min-h-screen">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-6 border-b border-gray-800 pb-4">
+            <h1 class="text-xl font-bold">HItung</h1>
+            <p class="text-sm text-gray-400">Rencana Anggaran Biaya Konstruksi</p>
+        </div>
+
+        <!-- Data Proyek -->
+        <div class="bg-gray-900 p-5 rounded-xl border border-gray-800 mb-6">
+            <h2 class="font-bold mb-3 text-blue-400">Data Proyek</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input type="text" id="projName" placeholder="Nama Proyek" class="bg-gray-800 p-3 rounded-lg border border-gray-700 w-full outline-none">
+                <input type="text" id="projOwner" placeholder="Pemilik / Owner" class="bg-gray-800 p-3 rounded-lg border border-gray-700 w-full outline-none">
+                <input type="text" id="projLoc" placeholder="Lokasi" class="bg-gray-800 p-3 rounded-lg border border-gray-700 w-full outline-none">
+                <input type="number" id="projYear" placeholder="Tahun Anggaran" class="bg-gray-800 p-3 rounded-lg border border-gray-700 w-full outline-none">
+            </div>
+        </div>
+
+        <!-- Input Form -->
+        <div class="bg-gray-900 p-5 rounded-xl border border-gray-800 mb-6">
+            <h2 class="font-bold mb-3">Tambah Item Pekerjaan</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input type="text" id="kategori" placeholder="Kategori (A. Pekerjaan Tanah)" class="bg-gray-800 p-3 rounded-lg border border-gray-700 w-full">
+                <input type="text" id="nama" placeholder="Uraian Pekerjaan" class="bg-gray-800 p-3 rounded-lg border border-gray-700 w-full">
+                <input type="text" id="spek" placeholder="Spesifikasi (Opsional)" class="bg-gray-800 p-3 rounded-lg border border-gray-700 w-full col-span-1 md:col-span-2">
+                <input type="number" id="volume" inputmode="decimal" placeholder="Volume" class="bg-gray-800 p-3 rounded-lg border border-gray-700 w-full">
+                <input type="text" id="satuan" placeholder="Satuan (m2/m3/bh)" class="bg-gray-800 p-3 rounded-lg border border-gray-700 w-full">
+                <input type="text" id="hargaInput" inputmode="numeric" placeholder="Harga Satuan (Rp)" class="bg-gray-800 p-3 rounded-lg border border-gray-700 w-full col-span-1 md:col-span-2">
+            </div>
+            <button onclick="tambahData()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold mt-4 hover:bg-blue-700 transition">+ Tambah Item</button>
+        </div>
+
+        <!-- Tombol Utilities Profesional -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6 no-print">
+            <button onclick="exportCSV()" class="flex items-center justify-center gap-2 bg-gray-800 p-3 rounded-xl border border-gray-700 hover:bg-gray-700 transition">
+                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                <span class="text-sm font-medium">Export Excel</span>
+            </button>
+            <button onclick="backupData()" class="flex items-center justify-center gap-2 bg-gray-800 p-3 rounded-xl border border-gray-700 hover:bg-gray-700 transition">
+                <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                <span class="text-sm font-medium">Backup</span>
+            </button>
+            <button onclick="document.getElementById('restoreFile').click()" class="flex items-center justify-center gap-2 bg-gray-800 p-3 rounded-xl border border-gray-700 hover:bg-gray-700 transition">
+                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                <span class="text-sm font-medium">Restore</span>
+            </button>
+            <input type="file" id="restoreFile" onchange="restoreData(event)" class="hidden">
+        </div>
+
+        <!-- Tabel RAB -->
+        <div class="bg-gray-900 p-5 rounded-xl border border-gray-800 overflow-x-auto">
+            <h2 class="font-bold mb-4">Rincian Anggaran</h2>
+            <table class="w-full text-left text-sm border-collapse">
+                <thead><tr class="border-b border-gray-700 text-gray-400"><th class="p-2">No</th><th class="p-2">Uraian</th><th class="p-2 text-center">Vol</th><th class="p-2">Sat</th><th class="p-2 text-right">Harga</th><th class="p-2 text-right">Jumlah</th><th class="p-2 no-print">Aksi</th></tr></thead>
+                <tbody id="rabBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Total & PPN -->
+        <div class="mt-6 bg-gray-900 p-5 rounded-xl border border-gray-800">
+            <div class="flex items-center justify-between mb-4">
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" id="ppnCheck" onchange="render()" class="w-5 h-5"> Tambahkan PPN (%)
+                </label>
+                <input type="number" id="ppnInput" value="11" oninput="render()" class="bg-gray-800 w-20 p-2 rounded text-right">
+            </div>
+            <div class="flex justify-between text-xl font-bold py-2 border-t border-gray-700">
+                <span>Subtotal</span>
+                <span id="subTotalGlobal">Rp 0</span>
+            </div>
+            <div class="flex justify-between text-xl font-bold py-2 border-b border-gray-700">
+                <span>PPN</span>
+                <span id="ppnTotalGlobal">Rp 0</span>
+            </div>
+            <div class="flex justify-between text-2xl font-bold mt-4">
+                <span>Total Keseluruhan</span>
+                <span id="grandTotal">Rp 0</span>
+            </div>
+            <button onclick="window.print()" class="w-full mt-4 bg-white text-gray-950 py-3 rounded-lg font-bold">Cetak ke PDF</button>
+        </div>
+    </div>
+
+    <script>
+        let dataRAB = JSON.parse(localStorage.getItem('dataRAB')) || [];
+
+        const hargaInput = document.getElementById('hargaInput');
+        hargaInput.addEventListener('keyup', function(e) {
+            let val = this.value.replace(/[^0-9]/g, '');
+            if(val) this.value = new Intl.NumberFormat('id-ID').format(val);
+        });
+
+        function formatRupiah(angka) { return "Rp " + new Intl.NumberFormat('id-ID').format(Math.floor(angka)); }
+
+        function render() {
+            const body = document.getElementById('rabBody');
+            body.innerHTML = '';
+            let grandTotal = 0;
+            let counter = 1;
+            
+            const ppnActive = document.getElementById('ppnCheck').checked;
+            const ppnVal = parseFloat(document.getElementById('ppnInput').value) || 0;
+
+            const grouped = dataRAB.reduce((acc, item) => {
+                if (!acc[item.kategori]) acc[item.kategori] = [];
+                acc[item.kategori].push(item);
+                return acc;
+            }, {});
+
+            Object.keys(grouped).forEach(kategori => {
+                let catTotal = 0;
+                body.innerHTML += `<tr class="bg-gray-800 text-gray-300"><td colspan="7" class="p-2 font-bold">${kategori}</td></tr>`;
+                
+                grouped[kategori].forEach((item, index) => {
+                    const subtotal = item.volume * item.harga;
+                    catTotal += subtotal;
+                    grandTotal += subtotal;
+                    body.innerHTML += `<tr class="border-b border-gray-800"><td class="p-2">${counter++}</td><td class="p-2"><div>${item.nama}</div><div class="text-[10px] text-gray-500 italic">${item.spek || ''}</div></td><td class="p-2 text-center">${item.volume}</td><td class="p-2">${item.satuan}</td><td class="p-2 text-right">${formatRupiah(item.harga)}</td><td class="p-2 text-right">${formatRupiah(subtotal)}</td><td class="p-2 text-center no-print"><button onclick="hapus(${index})" class="text-red-500">✕</button></td></tr>`;
+                });
+
+                body.innerHTML += `<tr class="bg-gray-900 border-b border-gray-700 font-bold"><td colspan="5" class="p-2 text-right text-gray-400">SUBTOTAL ${kategori}</td><td class="p-2 text-right">${formatRupiah(catTotal)}</td><td class="no-print"></td></tr>`;
+            });
+
+            document.getElementById('subTotalGlobal').innerText = formatRupiah(grandTotal);
+            let ppnAmount = ppnActive ? (grandTotal * (ppnVal/100)) : 0;
+            document.getElementById('ppnTotalGlobal').innerText = formatRupiah(ppnAmount);
+            document.getElementById('grandTotal').innerText = formatRupiah(grandTotal + ppnAmount);
+            
+            localStorage.setItem('dataRAB', JSON.stringify(dataRAB));
+        }
+
+        function tambahData() {
+            const kategori = document.getElementById('kategori').value || 'Umum';
+            const nama = document.getElementById('nama').value;
+            const spek = document.getElementById('spek').value;
+            const volume = parseFloat(document.getElementById('volume').value);
+            const satuan = document.getElementById('satuan').value;
+            const harga = parseFloat(document.getElementById('hargaInput').value.replace(/\./g, ''));
+
+            if(nama && volume && harga) {
+                dataRAB.push({ kategori, nama, spek, volume, satuan, harga });
+                document.getElementById('nama').value = '';
+                document.getElementById('spek').value = '';
+                document.getElementById('volume').value = '';
+                document.getElementById('satuan').value = '';
+                document.getElementById('hargaInput').value = '';
+                render();
+            }
+        }
+
+        function hapus(index) { dataRAB.splice(index, 1); render(); }
+
+        function backupData() {
+            const blob = new Blob([JSON.stringify(dataRAB)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'rab_backup.json'; a.click();
+        }
+
+        function restoreData(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => { dataRAB = JSON.parse(e.target.result); render(); };
+            reader.readAsText(file);
+        }
+
+        function exportCSV() {
+            let csv = "Uraian,Spesifikasi,Volume,Satuan,Harga,Total\n";
+            dataRAB.forEach(i => csv += `${i.nama},${i.spek},${i.volume},${i.satuan},${i.harga},${i.volume * i.harga}\n`);
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'rab.csv'; a.click();
+        }
+
+        render();
+    </script>
+</body>
+</html>
