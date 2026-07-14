@@ -201,14 +201,27 @@
             reader.readAsText(file);
         }
 
-        function exportCSV() {
-            let csv = "Uraian,Spesifikasi,Volume,Satuan,Harga,Total\n";
-            dataRAB.forEach(i => csv += `${i.nama},${i.spek},${i.volume},${i.satuan},${i.harga},${i.volume * i.harga}\n`);
-            const blob = new Blob([csv], {type: 'text/csv'});
+                function exportCSV() {
+            let csv = "\ufeff"; 
+            csv += "LAPORAN RENCANA ANGGARAN BIAYA (RAB)\n";
+            csv += "Nama Proyek," + (document.getElementById('projName').value || "-") + "\n";
+            csv += "Pemilik," + (document.getElementById('projOwner').value || "-") + "\n";
+            csv += "Lokasi," + (document.getElementById('projLoc').value || "-") + "\n";
+            csv += "Tahun Anggaran," + (document.getElementById('projYear').value || "-") + "\n\n";
+            csv += "No,Kategori,Uraian Pekerjaan,Spesifikasi,Volume,Satuan,Harga Satuan,Jumlah\n";
+            
+            dataRAB.forEach((i, idx) => {
+                csv += `${idx + 1},"${i.kategori}","${i.nama}","${i.spek}",${i.volume},"${i.satuan}",${i.harga},${i.volume * i.harga}\n`;
+            });
+            
+            const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = 'rab.csv'; a.click();
-        }
+            a.href = url; 
+            a.download = 'Laporan_RAB.csv'; 
+            a.click();
+                }
+        
 
         render();
     </script>
